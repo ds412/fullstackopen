@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import personService from './services/persons'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
@@ -11,25 +11,69 @@ const App = () => {
     const [newFilter, setNewFilter] = useState('')
 
     useEffect(() => {
-        axios.get('http://localhost:3001/persons')
-             .then(response => { setPersons(response.data) })
+        personService
+            .getAll()
+            .then(newPersons => { setPersons(newPersons) })
     }, [])
 
-    const addName = (event) => {
+    const addClickHandler = (event) => {
         event.preventDefault()
-        if (!persons.some(person => person.name === newName)) {
-            const nameObject = {
-                name: newName,
-                number: newNumber,
-                id: String(persons.length + 1),
-            }
-            setPersons(persons.concat(nameObject))
+        const existingPerson = persons.find(person => person.name === newName)
+
+        if (!existingPerson) {
+            addPerson()
+        }
+        else if (existingPerson.number !== newNumber) {
+            updatePerson(existingPerson)
         }
         else {
             alert(`${newName} is already added to the phonebook`)
         }
         setNewName('')
         setNewNumber('')
+    }
+
+    const addPerson = () => {
+        const personObject = {
+            name: newName,
+            number: newNumber,
+        }
+
+        personService
+            .create(personObject)
+            .then(newPerson => { setPersons(persons.concat(newPerson)) })
+    }
+
+    const updatePerson = (person) => {
+        let msg = `${person.name} is already in the phonebook, replace the old number with a new one?`
+        if (confirm(msg)) {
+            const changedPerson = { ...person, number: newNumber }
+
+            personService
+                .update(person.id, changedPerson)
+                .then(updatedPerson => {
+                    setPersons(persons.map(p => (p.id === updatedPerson.id) ? updatedPerson : p))
+                })
+                .catch(error => {
+                    alert(`${person.name} was already deleted from server`)
+                    setPersons(persons.filter(p => p.id !== person.id))
+                })
+        }
+    }
+
+    const removePerson = (person) => {
+        if (confirm(`Do you want to delete ${person.name}?`)) {
+            personService
+                .remove(person.id)
+                .then(removed => {
+                    setPersons(persons.filter(p => p.id != removed.id))
+                })
+                .catch(error => {
+                    alert(`${person.name} was already deleted from server`)
+                    setPersons(persons.filter(p => p.id !== person.id))
+                })
+
+        }
     }
 
     const filteredNames = () => {
@@ -54,11 +98,14 @@ const App = () => {
             <Filter filterValue={newFilter} onFilterChange={handleFilterChange}></Filter>
             <h2>Add a new Person</h2>
             <PersonForm
-                addNameFn={addName} nameValue={newName} numberValue={newNumber}
+                addNameFn={addClickHandler} nameValue={newName} numberValue={newNumber}
                 onNameChange={handleNameChange} onPhoneChange={handlePhoneChange}>
             </PersonForm>
             <h2>Numbers</h2>
-            <Persons persons={filteredNames()}></Persons>
+            <Persons
+                persons={filteredNames()}
+                removeHandler={removePerson}>
+            </Persons>
         </div>
     )
 }
