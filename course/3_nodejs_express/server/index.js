@@ -1,29 +1,29 @@
+require('dotenv').config()
 const express = require('express')  // import express module
-// const cors = require('cors')        // import cors module
-const app = express()               // create express server
+const Note = require('./models/note')
 
+const app = express()               // create express server
 app.use(express.json())             // use the express json parser
 app.use(express.static('dist'))     // allow express to access static data
-// app.use(cors())                     // use cors
 
-let notes = [
-    {
-        id: "1",
-        content: "HTML is easy",
-        important: true
-    },
-    {
-        id: "2",
-        content: "Browser can execute only JavaScript",
-        important: false
-    },
-    {
-        id: "3",
-        content: "GET and POST are the most important methods of HTTP protocol",
-        important: true
-    }
-]
 
+// let notes = [
+//     {
+//         id: "1",
+//         content: "HTML is easy",
+//         important: true
+//     },
+//     {
+//         id: "2",
+//         content: "Browser can execute only JavaScript",
+//         important: false
+//     },
+//     {
+//         id: "3",
+//         content: "GET and POST are the most important methods of HTTP protocol",
+//         important: true
+//     }
+// ]
 
 // middleware - prints information about every request sent to server
 const requestLogger = (request, response, next) => {
@@ -43,8 +43,10 @@ app.get('/', (request, response) => {
 
 // define GET route for /api/notes
 app.get('/api/notes', (request, response) => {
-    // tell express to respond with JSON (automatically sets header and formats data)
-    response.json(notes)
+    Note.find({}).then(notes => {
+        // tell express to respond with JSON (automatically sets header and formats data)
+        response.json(notes)
+    })
 })
 
 // define GET route for individual note - :id allows for using id as a parameter
@@ -95,7 +97,6 @@ app.post('/api/notes', (request, response) => {
 })
 
 
-
 // middleware - used for catching requests made to non-existent routes
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
@@ -105,7 +106,7 @@ app.use(unknownEndpoint)
 
 
 // make app server listen on port defined in environment variable (or port 3001 if undefined)
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
