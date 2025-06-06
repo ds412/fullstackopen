@@ -6,25 +6,6 @@ const app = express()               // create express server
 app.use(express.json())             // use the express json parser
 app.use(express.static('dist'))     // allow express to access static data
 
-
-// let notes = [
-//     {
-//         id: "1",
-//         content: "HTML is easy",
-//         important: true
-//     },
-//     {
-//         id: "2",
-//         content: "Browser can execute only JavaScript",
-//         important: false
-//     },
-//     {
-//         id: "3",
-//         content: "GET and POST are the most important methods of HTTP protocol",
-//         important: true
-//     }
-// ]
-
 // middleware - prints information about every request sent to server
 const requestLogger = (request, response, next) => {
     console.log('Method:', request.method)
@@ -51,15 +32,12 @@ app.get('/api/notes', (request, response) => {
 
 // define GET route for individual note - :id allows for using id as a parameter
 app.get('/api/notes/:id', (request, response) => {
-    const id = request.params.id                      // get the parameter from the request
-    const note = notes.find(note => note.id === id)   // get the note in the notes array
-    if (note) {
+    // use Mongoose findByID to retrieve the note with this ID in the database
+    Note.findById(request.params.id).then(note => {
         response.json(note)
-    }
-    else {
-        response.status(404).end()                    // return with 404 error if id not found
-    }
+    })
 })
+
 
 // define DELETE route for individual note
 app.delete('/api/notes/:id', (request, response) => {
@@ -84,18 +62,17 @@ app.post('/api/notes', (request, response) => {
         return response.status(400).json({ error: 'content missing' })
     }
 
-    // create new note
-    const note = {
+    // create new note using the Note constructor
+    const note = new Note({
         content: body.content,
         important: body.important || false,
-        id: generateId(),
-    }
+    })
 
-    notes = notes.concat(note)                       // create new notes array: current array + note
-
-    response.json(note)                              // respond with the note
+    // save the new note to the database
+    note.save().then(savedNote => {
+        response.json(savedNote)    // respond with formatted version of saved note
+    })
 })
-
 
 // middleware - used for catching requests made to non-existent routes
 const unknownEndpoint = (request, response) => {
@@ -104,8 +81,7 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint)
 
-
-// make app server listen on port defined in environment variable (or port 3001 if undefined)
+// make app server listen on port defined in environment variable
 const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
