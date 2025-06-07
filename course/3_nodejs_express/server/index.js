@@ -61,13 +61,8 @@ app.delete('/api/notes/:id', (request, response, next) => {
 })
 
 // define POST route for individual note
-app.post('/api/notes', (request, response) => {
+app.post('/api/notes', (request, response, next) => {
     const body = request.body                        // get the body of the request
-
-    // if no content was included in the request, respond with 400 bad request error
-    if (!body.content) {
-        return response.status(400).json({ error: 'content missing' })
-    }
 
     // create new note using the Note constructor
     const note = new Note({
@@ -76,9 +71,11 @@ app.post('/api/notes', (request, response) => {
     })
 
     // save the new note to the database
-    note.save().then(savedNote => {
-        response.json(savedNote)    // respond with formatted version of saved note
-    })
+    note.save()
+        .then(savedNote => {
+            response.json(savedNote)    // respond with formatted version of saved note
+        })
+        .catch(error => next(error))
 })
 
 
@@ -124,6 +121,9 @@ const errorHandler = (error, request, response, next) => {
     // 400 bad request
     if (error.name === 'CastError') {
         return response.status(400).send({ error: 'malformatted id' })
+    }
+    else if (error.name === 'ValidationError') {
+        return response.status(400).json({ error: error.message })
     }
     next(error)
 }
