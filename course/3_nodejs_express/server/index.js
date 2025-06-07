@@ -3,8 +3,10 @@ const express = require('express')  // import express module
 const Note = require('./models/note')
 
 const app = express()               // create express server
-app.use(express.json())             // use the express json parser
+
+// -------- PRE-PROCESS MIDDLEWARE -------
 app.use(express.static('dist'))     // allow express to access static data
+app.use(express.json())             // use the express json parser
 
 // middleware - prints information about every request sent to server
 const requestLogger = (request, response, next) => {
@@ -16,6 +18,8 @@ const requestLogger = (request, response, next) => {
 }
 app.use(requestLogger)   // use before the routes if we want routes to execute it
 
+
+// ---------- REST ROUTES  -------------
 // define GET route for root
 app.get('/', (request, response) => {
     // send response with given content (automatically sets header)
@@ -31,27 +35,30 @@ app.get('/api/notes', (request, response) => {
 })
 
 // define GET route for individual note - :id allows for using id as a parameter
-app.get('/api/notes/:id', (request, response) => {
+// next() goes on to error handler
+app.get('/api/notes/:id', (request, response, next) => {
     // use Mongoose findByID to retrieve the note with this ID in the database
-    Note.findById(request.params.id).then(note => {
-        response.json(note)
-    })
+    Note.findById(request.params.id)
+        .then(note => {
+            if (note) {
+                response.json(note)
+            }
+            else {
+                response.status(404).end()  // no matching note found: 404 not found error
+            }
+        }).catch(error => next(error))      // promise rejected - call error handler
 })
 
 
 // define DELETE route for individual note
-app.delete('/api/notes/:id', (request, response) => {
-    const id = request.params.id
-    notes = notes.filter(note => note.id !== id)
-    response.status(204).end()                        // return with 204 error if id not found
+app.delete('/api/notes/:id', (request, response, next) => {
+    // Use Mongoose findByIDAndDelete method to delete note with this id
+    Note.findByIdAndDelete(request.params.id)
+        .then(result => {
+            response.status(204).end()   //backend returns 204 for both note that exists and note that doesn't exist
+        })
+        .catch(error => next(error))
 })
-
-
-// generate new ID (current maxID + 1)
-const generateId = () => {
-    const maxId = notes.length > 0 ? Math.max(...notes.map(n => Number(n.id))) : 0
-    return String(maxId + 1)
-}
 
 // define POST route for individual note
 app.post('/api/notes', (request, response) => {
@@ -74,13 +81,57 @@ app.post('/api/notes', (request, response) => {
     })
 })
 
-// middleware - used for catching requests made to non-existent routes
+
+// define PUT route to change the importance of an individual note
+app.put('/api/notes/:id', (request, response, next) => {
+    const { content, important } = request.body
+
+    // used findByID to fetch the note from the database
+    Note.findById(request.params.id)
+        .then(note => {
+            // if note isn't found - 404 error
+            if (!note) {
+                return response.status(404).end()
+            }
+
+            // if note is found - update content and important values
+            note.content = content
+            note.important = important
+
+            // save modified note to the database
+            return note.save()
+                //send updated note in HTTP response
+                .then((updatedNote) => {
+                    response.json(updatedNote)
+                })
+        })
+        .catch(error => next(error))
+})
+
+
+// -------- POST-PROCESS MIDDLEWARE -----------
+// unknown endpoint middleware - used for catching requests made to non-existent routes
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
 }
-
 app.use(unknownEndpoint)
 
+
+// error handler middleware - invoked by next, takes 4 arguments
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+
+    // 400 bad request
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id' })
+    }
+    next(error)
+}
+
+// error handler has to be the last loaded middleware, also all the routes should be registered before this!
+app.use(errorHandler)
+
+// -------- CONNECT -------
 // make app server listen on port defined in environment variable
 const PORT = process.env.PORT
 app.listen(PORT, () => {
