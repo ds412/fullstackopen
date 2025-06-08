@@ -54,7 +54,7 @@ app.get('/api/notes/:id', (request, response, next) => {
 app.delete('/api/notes/:id', (request, response, next) => {
     // Use Mongoose findByIDAndDelete method to delete note with this id
     Note.findByIdAndDelete(request.params.id)
-        .then(result => {
+        .then(() => {
             response.status(204).end()   //backend returns 204 for both note that exists and note that doesn't exist
         })
         .catch(error => next(error))
