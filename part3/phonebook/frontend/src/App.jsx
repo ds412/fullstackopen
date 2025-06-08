@@ -63,7 +63,7 @@ const App = () => {
                 .update(person.id, changedPerson)
                 .then(updatedPerson => {
                     setPersons(persons.map(p => (p.id === updatedPerson.id) ? updatedPerson : p))
-                    setMessage(`Updated the number for ${updatedPerson}`)
+                    setMessage(`Updated the number for ${changedPerson.name}`)
                     setTimeout(() => { setMessage(null) }, 5000)
                 })
                 .catch(error => {
