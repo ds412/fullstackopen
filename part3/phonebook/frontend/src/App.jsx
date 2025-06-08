@@ -48,6 +48,10 @@ const App = () => {
                 setMessage(`Added ${newName}`)
                 setTimeout(() => { setMessage(null) }, 5000)
             })
+            .catch(error => {
+                setMessage(error.response.data.error)
+                setTimeout(() => { setMessage(null) }, 5000)
+            })
     }
 
     const updatePerson = (person) => {
@@ -63,9 +67,8 @@ const App = () => {
                     setTimeout(() => { setMessage(null) }, 5000)
                 })
                 .catch(error => {
-                    setMessage(`Information for ${person.name} was already deleted from server`)
+                    setMessage(error.response.data.error)
                     setTimeout(() => { setMessage(null) }, 5000)
-                    setPersons(persons.filter(p => p.id !== person.id))
                 })
         }
     }

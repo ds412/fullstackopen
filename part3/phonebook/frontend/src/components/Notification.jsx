@@ -13,7 +13,11 @@ const Notification = ({ message }) => {
         return null
     }
 
-    message.includes('delete') ? notificationStyle.color = 'red' : notificationStyle.color = 'green';
+    notificationStyle.color = 'green';
+    if (message.includes('delete') || message.includes('fail')) {
+        notificationStyle.color = 'red'
+    }
+
     return (
         <div style={notificationStyle}>
             {message}
