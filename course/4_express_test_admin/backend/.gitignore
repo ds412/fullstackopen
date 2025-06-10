@@ -2,3 +2,5 @@ node_modules
 mongo.js
 .env
 .vscode
+tests
+for_testing.js
