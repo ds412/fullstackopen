@@ -15,7 +15,7 @@ const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
 }
 
-// error handler middleware - invoked by next, takes 4 arguments
+// error handler middleware - invoked by next(), takes 4 arguments
 const errorHandler = (error, request, response, next) => {
     logger.error(error.message)
 

@@ -2,31 +2,27 @@ const notesRouter = require('express').Router()    // create new Router object
 const Note = require('../models/note')             // import Note schema for Mongoose
 
 // define GET route for /api/notes
-notesRouter.get('/', (request, response) => {
+notesRouter.get('/', async (request, response) => {
     // send response with given content (automatically sets header)
-    Note.find({}).then(notes => {
-        // tell express to respond with JSON (automatically sets header and formats data)
-        response.json(notes)
-    })
+    const notes = await Note.find({})
+    // tell express to respond with JSON (automatically sets header and formats data)
+    response.json(notes)
 })
 
 // define GET route for individual note - :id allows for using id as a parameter
-// next() goes on to error handler
-notesRouter.get('/:id', (request, response, next) => {
+notesRouter.get('/:id', async (request, response) => {
     // use Mongoose findByID to retrieve the note with this ID in the database
-    Note.findById(request.params.id)
-        .then(note => {
-            if (note) {
-                response.json(note)
-            }
-            else {
-                response.status(404).end()  // no matching note found: 404 not found error
-            }
-        }).catch(error => next(error))      // promise rejected - call error handler
+    const note = await Note.findById(request.params.id)
+    if (note) {
+        response.json(note)
+    }
+    else {
+        response.status(404).end()  // no matching note found: 404 not found error
+    }
 })
 
 // define POST route for individual note
-notesRouter.post('/', (request, response, next) => {
+notesRouter.post('/', async (request, response) => {
     const body = request.body                        // get the body of the request
 
     // create new note using the Note constructor
@@ -35,22 +31,17 @@ notesRouter.post('/', (request, response, next) => {
         important: body.important || false,
     })
 
-    // save the new note to the database
-    note.save()
-        .then(savedNote => {
-            response.json(savedNote)    // respond with formatted version of saved note
-        })
-        .catch(error => next(error))
+    const savedNote = await note.save()     // save the new note to the database
+    response.status(201).json(savedNote)    // respond with formatted version of saved note
+
 })
 
 // define DELETE route for individual note
-notesRouter.delete('/:id', (request, response, next) => {
+notesRouter.delete('/:id', async (request, response) => {
     // Use Mongoose findByIDAndDelete method to delete note with this id
-    Note.findByIdAndDelete(request.params.id)
-        .then(() => {
-            response.status(204).end()   //backend returns 204 for both note that exists and note that doesn't exist
-        })
-        .catch(error => next(error))
+    await Note.findByIdAndDelete(request.params.id)
+    response.status(204).end()   //backend returns 204 for both note that exists and note that doesn't exist
+
 })
 
 // define PUT route to change the importance of an individual note
