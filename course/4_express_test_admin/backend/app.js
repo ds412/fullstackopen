@@ -3,7 +3,9 @@ const mongoose = require('mongoose')
 const config = require('./utils/config')
 const logger = require('./utils/logger')
 const middleware = require('./utils/middleware')
-const notesRouter = require('./controllers/notes')  // import Router module
+const notesRouter = require('./controllers/notes')  // import Router modules
+const usersRouter = require('./controllers/users')
+const loginRouter = require('./controllers/login')
 
 const app = express()                               // create express server
 
@@ -24,6 +26,8 @@ app.use(express.json())               // use the express json parser
 app.use(middleware.requestLogger)     // load request logger before registering routes
 
 app.use('/api/notes', notesRouter)     // register REST routes
+app.use('/api/users', usersRouter)
+app.use('/api/login', loginRouter)
 
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)       // error handler has to be the last loaded middleware

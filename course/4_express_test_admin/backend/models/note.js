@@ -9,6 +9,10 @@ const noteSchema = new mongoose.Schema({
         required: true
     },
     important: Boolean,
+    user: {                             // reference to user who created the message
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }
 })
 
 // modify toJSON method of the schema so it no longer displays internal mongoDB variables
