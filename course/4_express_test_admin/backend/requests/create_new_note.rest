@@ -2,6 +2,17 @@ POST http://localhost:3001/api/notes/
 Content-Type: application/json
 
 {
-    "content": "VSCode rest client is useful",
-    "important": true
+    "content": "User id of the note creator is sent along with the request",
+    "important": true,
+    "userId": "684cb5edecc09dac0954655f"
+}
+
+###
+POST http://localhost:3001/api/notes/
+Content-Type: application/json
+
+{
+    "content": "A user can have multiple notes",
+    "important": false,
+    "userId": "684cb5edecc09dac0954655f"
 }
