@@ -3,6 +3,7 @@ import Footer from './components/Footer'
 import Note from './components/Note'
 import Notification from './components/Notification'
 import noteService from './services/notes'
+import loginService from './services/login'
 
 const App = (props) => {
     // initializes notes as an empty array
@@ -13,12 +14,28 @@ const App = (props) => {
     const [showAll, setShowAll] = useState(true)
     // state used to denote what error message should be displayed
     const [errorMessage, setErrorMessage] = useState('some error happened...')
+    // state fields to store username and password data from the form
+    const [username, setUsername] = useState('')
+    const [password, setPassword] = useState('')
+    // state used to store information about the current user
+    const [user, setUser] = useState(null)
+
 
     // useEffect requires a function (the effect) and how often effect is run (empty array: just once)
     useEffect(() => {
         noteService
             .getAll()
             .then(initialNotes => { setNotes(initialNotes) }) // set notes array to data fetched from server
+    }, [])
+
+    // on first loading of the page, checks if user has been saved in browser's local storage
+    useEffect(() => {
+        const loggedUserJSON = window.localStorage.getItem('loggedNoteappUser')
+        if (loggedUserJSON) {
+            const user = JSON.parse(loggedUserJSON)
+            setUser(user)
+            noteService.setToken(user.token)
+        }
     }, [])
 
     // event handler called when clicking the submit button
@@ -61,14 +78,80 @@ const App = (props) => {
             })
     }
 
+    // event handler to handle data in the login form
+    const handleLogin = async (event) => {
+        event.preventDefault()
+        console.log('logging in with username', username)
+        try {
+            // try logging in, if successful save response (including token to user field)
+            const user = await loginService.login({ username, password, })
+            // save user data to browser's local storage
+            window.localStorage.setItem('loggedNoteappUser', JSON.stringify(user))
+            noteService.setToken(user.token)    // set token info for HTTP headers
+            setUser(user)                       // save data for user in app state field
+            setUsername('')
+            setPassword('')
+        }
+        catch (exception) {
+            setErrorMessage('Wrong credentials')
+            setTimeout(() => { setErrorMessage(null) }, 5000)
+        }
+    }
+
+    // helper function to generate loginForm
+    const loginForm = () => (
+        <form onSubmit={handleLogin}>
+            <div>
+                username
+                <input
+                    type="text"
+                    value={username}
+                    name="Username"
+                    onChange={({ target }) => setUsername(target.value)}
+                />
+            </div>
+            <div>
+                password
+                <input
+                    type="password"
+                    value={password}
+                    name="Password"
+                    onChange={({ target }) => setPassword(target.value)}
+                />
+            </div>
+            <button type="submit">login</button>
+        </form>
+    )
+
+    // helper function to generate note form
+    const noteForm = () => (
+        <form onSubmit={addNote}>
+            <input
+                value={newNote}
+                onChange={handleNoteChange}
+            />
+            <button type="submit">save</button>
+        </form>
+    )
 
     // show either all notes or just important ones
     const notesToShow = showAll ? notes : notes.filter(note => note.important)
+
 
     return (
         <div>
             <h1>Notes</h1>
             <Notification message={errorMessage} />
+
+            {/* Show login form (if not logged in) or note form (if logged in) */}
+            {user === null ?
+                loginForm() :
+                <div>
+                    <p>{user.name} logged-in</p>
+                    {noteForm()}
+                </div>
+            }
+
             <div>
                 {/* Button to toggle showing only important notes/all notes */}
                 <button onClick={() => setShowAll(!showAll)}>
@@ -85,13 +168,7 @@ const App = (props) => {
                     />
                 )}
             </ul>
-            {/* Form used for adding new notes */}
-            <form onSubmit={addNote}>
-                <input value={newNote}
-                    onChange={handleNoteChange} />
-                <button type="submit">save</button>
-            </form>
-            <Footer/>
+            <Footer />
         </div>
     )
 }
