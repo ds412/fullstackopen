@@ -1,7 +1,9 @@
 module.exports = {
     root: true,
     env: {
-        browser: true, es2020: true, "vitest-globals/env": true
+        browser: true,
+        es2020: true,
+        "vitest-globals/env": true,
     },
     extends: [
         'eslint:recommended',
@@ -39,10 +41,9 @@ module.exports = {
         "arrow-spacing": [
             "error", { "before": true, "after": true }
         ],
-        'react-refresh/only-export-components': [
-            'warn',
-            { allowConstantExport: true },
-        ],
-        'react/prop-types': 0
+        "no-console": 0,
+        "react/react-in-jsx-scope": "off",
+        "react/prop-types": 0,
+        "no-unused-vars": 0
     },
 }

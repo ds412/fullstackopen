@@ -81,7 +81,7 @@ const App = () => {
                 setTimeout(() => { setNotification(null) }, 5000)
             }
             catch (exception) {
-                setNotification('Error: you don\'t have permission to remove this blog')
+                setNotification('Error: you do not have permission to remove this blog')
                 setTimeout(() => { setNotification(null) }, 5000)
             }
         }

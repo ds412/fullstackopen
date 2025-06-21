@@ -3,6 +3,11 @@ import { useState } from 'react'
 const NoteForm = ({ createNote }) => {
     const [newNote, setNewNote] = useState('')
 
+    // event handler called when changing text of note
+    const handleChange = (event) => {
+        setNewNote(event.target.value)
+    }
+
     // event handler called when clicking the submit button
     const addNote = (event) => {
         event.preventDefault()
@@ -15,12 +20,13 @@ const NoteForm = ({ createNote }) => {
     }
 
     return (
-        <div>
+        <div className="formDiv">
             <h2>Create a new note</h2>
             <form onSubmit={addNote}>
                 <input
                     value={newNote}
-                    onChange={event => setNewNote(event.target.value)}
+                    onChange={handleChange}
+                    id='note-input'
                 />
                 <button type="submit">save</button>
             </form>
