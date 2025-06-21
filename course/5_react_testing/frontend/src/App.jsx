@@ -1,25 +1,31 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Footer from './components/Footer'
+import LoginForm from './components/LoginfForm'
 import Note from './components/Note'
+import NoteForm from './components/NoteForm'
 import Notification from './components/Notification'
+import Togglable from './components/Togglable'
 import noteService from './services/notes'
 import loginService from './services/login'
 
 const App = (props) => {
     // initializes notes as an empty array
     const [notes, setNotes] = useState([])
-    // state to store user-submitted input
-    const [newNote, setNewNote] = useState('a new note...')
+    // // state to store user-submitted input
+    const [newNote, setNewNote] = useState('')
     // state to keep track of which notes to be displayed
     const [showAll, setShowAll] = useState(true)
     // state used to denote what error message should be displayed
-    const [errorMessage, setErrorMessage] = useState('some error happened...')
+    const [errorMessage, setErrorMessage] = useState(null)
     // state fields to store username and password data from the form
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     // state used to store information about the current user
     const [user, setUser] = useState(null)
+    // state to allow login form to be visible or not
+    const [loginVisible, setLoginVisible] = useState(false)
 
+    const noteFormRef = useRef()           // allows referencing noteForm component
 
     // useEffect requires a function (the effect) and how often effect is run (empty array: just once)
     useEffect(() => {
@@ -37,30 +43,6 @@ const App = (props) => {
             noteService.setToken(user.token)
         }
     }, [])
-
-    // event handler called when clicking the submit button
-    const addNote = (event) => {
-        event.preventDefault()
-        // create new note object, but let server generate id
-        const noteObject = {
-            content: newNote,
-            important: Math.random() < 0.5,
-        }
-
-        // send note object to server using POST and update local state with response
-        noteService
-            .create(noteObject)
-            .then(returnedNote => {
-                setNotes(notes.concat(returnedNote))   // add new note object to saved notes (concat() to avoid mutation !)
-                setNewNote('')                          // reset newNote state
-            })
-    }
-
-    // event handler to synchronize changes made to input with component's state
-    const handleNoteChange = (event) => {
-        console.log(event.target.value)
-        setNewNote(event.target.value)
-    }
 
     // event handler to handle toggle importance button
     const toggleImportanceOf = (id) => {
@@ -98,45 +80,44 @@ const App = (props) => {
         }
     }
 
-    // helper function to generate loginForm
-    const loginForm = () => (
-        <form onSubmit={handleLogin}>
-            <div>
-                username
-                <input
-                    type="text"
-                    value={username}
-                    name="Username"
-                    onChange={({ target }) => setUsername(target.value)}
-                />
-            </div>
-            <div>
-                password
-                <input
-                    type="password"
-                    value={password}
-                    name="Password"
-                    onChange={({ target }) => setPassword(target.value)}
-                />
-            </div>
-            <button type="submit">login</button>
-        </form>
-    )
-
-    // helper function to generate note form
-    const noteForm = () => (
-        <form onSubmit={addNote}>
-            <input
-                value={newNote}
-                onChange={handleNoteChange}
-            />
-            <button type="submit">save</button>
-        </form>
-    )
+    // event handler for adding new note, send note object to server and updates local state
+    const addNote = (noteObject) => {
+        noteFormRef.current.toggleVisibility()        // hide the form after being created
+        noteService
+            .create(noteObject)
+            .then(returnedNote => {
+                setNotes(notes.concat(returnedNote))   // add new note object to saved notes (concat() to avoid mutation !)
+                setNewNote('')                         // reset newNote state
+            })
+    }
 
     // show either all notes or just important ones
     const notesToShow = showAll ? notes : notes.filter(note => note.important)
 
+    // login form component
+    const loginForm = () => {
+        {/* visibility is toggled by CSS display property */ }
+        const hideWhenVisible = { display: loginVisible ? 'none' : '' }
+        const showWhenVisible = { display: loginVisible ? '' : 'none' }
+
+        return (
+            <div>
+                {/* what to display when login form currently hidden */}
+                <div style={hideWhenVisible}>
+                    <button onClick={() => setLoginVisible(true)}>show login</button>
+                </div>
+                {/* what to display when login form currently visible */}
+                <div style={showWhenVisible}>
+                    <LoginForm username={username} password={password}
+                        handleUsernameChange={({ target }) => setUsername(target.value)}
+                        handlePasswordChange={({ target }) => setPassword(target.value)}
+                        handleSubmit={handleLogin}
+                    />
+                    <button onClick={() => setLoginVisible(false)}>hide login</button>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div>
@@ -144,11 +125,14 @@ const App = (props) => {
             <Notification message={errorMessage} />
 
             {/* Show login form (if not logged in) or note form (if logged in) */}
-            {user === null ?
+            {(user == null) ?
                 loginForm() :
                 <div>
-                    <p>{user.name} logged-in</p>
-                    {noteForm()}
+                    <p>{user.name} logged in</p>
+                    {/* ref allows using component code outside the component */}
+                    <Togglable buttonLabel='new note' ref={noteFormRef}>
+                        <NoteForm createNote={addNote} />
+                    </Togglable>
                 </div>
             }
 
