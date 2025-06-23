@@ -33,16 +33,16 @@ const Blog = ({ blog, update, remove, ownsBlog }) => {
     }
 
     return (
-        <div style={blogStyle} class="blog">
-            <div style={hide} class="shown">
+        <div style={blogStyle} className="blog">
+            <div style={hide} className="shown">
                 <p>
-                    {blog.title} {blog.author}
+                    <span>{blog.title} {blog.author}&nbsp;</span>
                     <button onClick={toggleVisibility}>show details</button>
                 </p>
             </div>
-            <div style={show} class="hidden">
+            <div style={show} className="hidden">
                 <p>
-                    {blog.title} {blog.author}
+                    <span>{blog.title} {blog.author}&nbsp;</span>
                     <button onClick={toggleVisibility}>hide details</button>
                 </p>
                 <p>{blog.url}</p>
