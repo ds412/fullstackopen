@@ -20,4 +20,26 @@ const noteReducer = (state = [], action) => {
     }
 }
 
-export default noteReducer;
+// helper function
+const generateId = () => { return Number((Math.random() * 1000000).toFixed(0)) }
+
+// action creators - exported allow importing them in other components
+export const createNote = (content) => {
+    return {
+        type: 'NEW_NOTE',
+        payload: {
+            content,
+            important: false,
+            id: generateId()
+        }
+    }
+}
+
+export const toggleImportanceOf = (id) => {
+    return {
+        type: 'TOGGLE_IMPORTANCE',
+        payload: { id }
+    }
+}
+
+export default noteReducer
