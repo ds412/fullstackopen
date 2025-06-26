@@ -1,0 +1,24 @@
+{
+  "notes": [
+    {
+      "content": "the app state is in redux store",
+      "important": true,
+      "id": "1"
+    },
+    {
+      "content": "state changes are made with actions",
+      "important": false,
+      "id": "2"
+    },
+    {
+      "id": "e23c",
+      "content": "If you read this, something has gone terribly, terribly wrong! Abort mission immediately!",
+      "important": false
+    },
+    {
+      "id": "9ed4",
+      "content": "Aborting! Aborting! Cats have claimed the Internet!",
+      "important": false
+    }
+  ]
+}

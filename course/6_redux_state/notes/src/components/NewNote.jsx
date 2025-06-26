@@ -5,11 +5,11 @@ import { createNote } from '../reducers/noteReducer'
 const NewNote = () => {
     const dispatch = useDispatch()                  // allow dispatching on state
 
-    const addNote = (event) => {
+    const addNote = async (event) => {
         event.preventDefault()
         const content = event.target.note.value     // get content from 'note' field of form
         event.target.note.value = ''                // reset 'note' field to blank
-        dispatch(createNote(content))               // dispatch new note with payload to store
+        dispatch(createNote(content))               // create a new note
     }
 
     return (

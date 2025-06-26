@@ -1,4 +1,4 @@
-import { createSlice, current } from "@reduxjs/toolkit"
+import { createSlice } from "@reduxjs/toolkit"
 
 const initialMessage = "Welcome to the world's most amazing anecdote application!"
 
@@ -6,14 +6,22 @@ const notificationSlice = createSlice({
     name: 'notification',
     initialState: initialMessage,
     reducers: {
-        setNotification(state, action) {
+        setMessage(state, action) {
             return action.payload
         },
-        removeNotification(state, action) {
+        clearMessage(state, action) {
             return initialMessage
         }
     }
 })
 
-export const { setNotification, removeNotification } = notificationSlice.actions
+export const setNotification = (content, seconds) => {
+    return async (dispatch) => {
+        dispatch(setMessage(content))
+        setTimeout(() => { dispatch(clearMessage()) }, 1000 * seconds)
+    }
+}
+
+
+export const { setMessage, clearMessage } = notificationSlice.actions
 export default notificationSlice.reducer
