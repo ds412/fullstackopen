@@ -1,0 +1,5 @@
+node_modules
+mongo.js
+.env
+.vscode
+requests
