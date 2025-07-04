@@ -22,17 +22,21 @@ const useCountry = (name) => {
 
     useEffect(() => {
         if (name) {
-            axios.get(`${COUNTRY_API_URL}${name}`).then((response) => {
-                setCountry({
-                    found: true,
-                    data: {
-                        name: response.data.name.common,
-                        capital: response.data.capital[0],
-                        population: response.data.population,
-                        flag: response.data.flags.png
-                    }
+            axios.get(`${COUNTRY_API_URL}${name}`)
+                .then((response) => {
+                    setCountry({
+                        found: true,
+                        data: {
+                            name: response.data.name.common,
+                            capital: response.data.capital[0],
+                            population: response.data.population,
+                            flag: response.data.flags.png
+                        }
+                    })
                 })
-            })
+                .catch(() => {
+                    setCountry({ found: false })
+                })
         }
     }, [name])
 
