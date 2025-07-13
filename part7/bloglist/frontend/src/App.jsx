@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
 import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import { useNotificationDispatch } from './NotificationContext'
 
 const App = () => {
-    const [notification, setNotification] = useState('')
+    const notificationDispatch = useNotificationDispatch()
     const [blogs, setBlogs] = useState([])
 
     const [username, setUsername] = useState('')
@@ -38,44 +41,34 @@ const App = () => {
             setUser(user)
             setUsername('')
             setPassword('')
-            setNotification(`Welcome ${user.name}`)
-            setTimeout(() => {
-                setNotification(null)
-            }, 5000)
+            notificationDispatch(`Welcome ${user.name}`)
         } catch (exception) {
-            setNotification('Error: wrong username or password')
-            setTimeout(() => {
-                setNotification(null)
-            }, 5000)
+            notificationDispatch('Error: wrong username or password')
         }
     }
 
     const logout = () => {
         window.localStorage.removeItem('loggedBlogAppUser')
         setUser(null)
-        setNotification('Succesfully logged out')
-        setTimeout(() => {
-            setNotification(null)
-        }, 5000)
+        notificationDispatch('Succesfully logged out')
     }
 
     const addBlog = async (blogObject) => {
         blogFormRef.current.toggleVisibility()
-        const returnedBlog = await blogService.create(blogObject)
-        setBlogs(blogs.concat(returnedBlog))
-        setNotification(`Added ${returnedBlog.title} by ${returnedBlog.author}`)
-        setTimeout(() => {
-            setNotification(null)
-        }, 5000)
+        try {
+            const returnedBlog = await blogService.create(blogObject)
+            setBlogs(blogs.concat(returnedBlog))
+            notificationDispatch(`Added ${returnedBlog.title} by ${returnedBlog.author}`)
+        }
+        catch (exception) {
+            notificationDispatch('Error: failed to add blog')
+        }
     }
 
     const updateBlog = async (blogObject) => {
         const returnedBlog = await blogService.update(blogObject)
         setBlogs(blogs.map((b) => (b.id !== blogObject.id ? b : returnedBlog)))
-        setNotification(`Liked ${returnedBlog.title} by ${returnedBlog.author}`)
-        setTimeout(() => {
-            setNotification(null)
-        }, 5000)
+        notificationDispatch(`Liked ${returnedBlog.title} by ${returnedBlog.author}`)
     }
 
     const deleteBlog = async (blogObject) => {
@@ -84,15 +77,9 @@ const App = () => {
             try {
                 await blogService.remove(blogObject)
                 setBlogs(blogs.filter((b) => b.id !== blogObject.id))
-                setNotification(`Removed ${blogObject.title} by ${blogObject.author}`)
-                setTimeout(() => {
-                    setNotification(null)
-                }, 5000)
+                notificationDispatch(`Removed ${blogObject.title} by ${blogObject.author}`)
             } catch (exception) {
-                setNotification('Error: you do not have permission to remove this blog')
-                setTimeout(() => {
-                    setNotification(null)
-                }, 5000)
+                notificationDispatch('Error: you do not have permission to remove this blog')
             }
         }
     }
@@ -101,7 +88,7 @@ const App = () => {
         return (
             <div>
                 <h2>log in to application</h2>
-                <Notification message={notification}></Notification>
+                <Notification />
                 <form onSubmit={handleLogin}>
                     <div>
                         username
@@ -129,7 +116,7 @@ const App = () => {
         return (
             <div>
                 <h2>blogs</h2>
-                <Notification message={notification}></Notification>
+                <Notification />
                 <p>
                     {user.name} logged in
                     <button onClick={() => logout()}>logout</button>

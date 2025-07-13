@@ -1,13 +1,17 @@
-const Notification = ({ message }) => {
-  if (message === null || message === "") {
-    return null;
-  }
+import { useNotificationValue } from '../NotificationContext'
 
-  if (message.includes("Error")) {
-    return <div className="notification error">{message}</div>;
-  } else {
-    return <div className="notification">{message}</div>;
-  }
-};
+const Notification = () => {
+    const message = useNotificationValue()
+    
+    if (message === null || message === '') {
+        return null
+    }
 
-export default Notification;
+    if (message.includes('Error')) {
+        return <div className="notification error">{message}</div>
+    } else {
+        return <div className="notification">{message}</div>
+    }
+}
+
+export default Notification
