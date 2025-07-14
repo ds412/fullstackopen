@@ -1,44 +1,42 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
 import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
-import blogService from './services/blogs'
 import loginService from './services/login'
+import { setToken, getBlogs, createBlog, updateBlog, removeBlog } from './requests'
+
 import { useNotificationDispatch } from './NotificationContext'
+import { useUserDispatch, useUserValue } from './UserContext'
 
 const App = () => {
+    const queryClient = useQueryClient()
     const notificationDispatch = useNotificationDispatch()
-    const [blogs, setBlogs] = useState([])
+    const userDispatch = useUserDispatch()
+    const currUser = useUserValue()
 
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
-    const [user, setUser] = useState(null)
 
     const blogFormRef = useRef()
-
-    useEffect(() => {
-        blogService.getAll().then((blogs) => setBlogs(blogs))
-    }, [])
 
     useEffect(() => {
         const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
         if (loggedUserJSON) {
             const user = JSON.parse(loggedUserJSON)
-            setUser(user)
-            blogService.setToken(user.token)
+            userDispatch({type: 'LOGIN', payload: user})
+            setToken(user.token)
         }
-    }, [])
+    }, [userDispatch])
 
     const handleLogin = async (event) => {
         event.preventDefault()
         try {
             const user = await loginService.login({ username, password })
             window.localStorage.setItem('loggedBlogAppUser', JSON.stringify(user))
-            blogService.setToken(user.token)
-            setUser(user)
+            setToken(user.token)
+            userDispatch({type: 'LOGIN', payload: user})
             setUsername('')
             setPassword('')
             notificationDispatch(`Welcome ${user.name}`)
@@ -49,42 +47,73 @@ const App = () => {
 
     const logout = () => {
         window.localStorage.removeItem('loggedBlogAppUser')
-        setUser(null)
+        userDispatch({ type: 'LOGOUT' })
         notificationDispatch('Succesfully logged out')
     }
 
-    const addBlog = async (blogObject) => {
-        blogFormRef.current.toggleVisibility()
-        try {
-            const returnedBlog = await blogService.create(blogObject)
-            setBlogs(blogs.concat(returnedBlog))
+    const addBlogMutation = useMutation({
+        mutationFn: createBlog,
+        onSuccess: (returnedBlog) => {
+            queryClient.invalidateQueries('blogs')
             notificationDispatch(`Added ${returnedBlog.title} by ${returnedBlog.author}`)
-        }
-        catch (exception) {
+        },
+        onError: () => {
             notificationDispatch('Error: failed to add blog')
-        }
+        },
+    })
+
+    const updateBlogMutation = useMutation({
+        mutationFn: updateBlog,
+        onSuccess: (updatedBlog) => {
+            queryClient.invalidateQueries('blogs')
+            notificationDispatch(`Liked ${updatedBlog.title} by ${updatedBlog.author}`)
+        },
+    })
+
+    const deleteBlogMutation = useMutation({
+        mutationFn: removeBlog,
+        onSuccess: () => {
+            queryClient.invalidateQueries('blogs')
+        },
+        onError: () => {
+            notificationDispatch('Error: you do not have permission to remove this blog')
+        },
+    })
+
+    const handleAddBlog = async (blogObject) => {
+        blogFormRef.current.toggleVisibility()
+        addBlogMutation.mutate(blogObject)
     }
 
-    const updateBlog = async (blogObject) => {
-        const returnedBlog = await blogService.update(blogObject)
-        setBlogs(blogs.map((b) => (b.id !== blogObject.id ? b : returnedBlog)))
-        notificationDispatch(`Liked ${returnedBlog.title} by ${returnedBlog.author}`)
+    const handleUpdateBlog = async (blog) => {
+        updateBlogMutation.mutate({ ...blog })
+        notificationDispatch(`Liked ${blog.title} by ${blog.author}`)
     }
 
-    const deleteBlog = async (blogObject) => {
+    const handleDeleteBlog = async (blogObject) => {
         const confirmed = window.confirm(`Remove ${blogObject.title} by ${blogObject.author}?`)
         if (confirmed) {
-            try {
-                await blogService.remove(blogObject)
-                setBlogs(blogs.filter((b) => b.id !== blogObject.id))
-                notificationDispatch(`Removed ${blogObject.title} by ${blogObject.author}`)
-            } catch (exception) {
-                notificationDispatch('Error: you do not have permission to remove this blog')
-            }
+            deleteBlogMutation.mutate(blogObject)
+            notificationDispatch(`Removed ${blogObject.title} by ${blogObject.author}`)
         }
     }
 
-    if (user === null) {
+    const result = useQuery({
+        queryKey: ['blogs'],
+        queryFn: getBlogs,
+        retry: 1,
+        refetchInterval: 300000,
+        refetchOnWindowFocus: false
+    })
+    if (result.isLoading) {
+        return <div>loading data...</div>
+    }
+    if (result.isError) {
+        return <div>Blog service not available due to problems in the server</div>
+    }
+    const blogs = result.data
+
+    if (currUser === null) {
         return (
             <div>
                 <h2>log in to application</h2>
@@ -118,11 +147,11 @@ const App = () => {
                 <h2>blogs</h2>
                 <Notification />
                 <p>
-                    {user.name} logged in
+                    {currUser.name} logged in
                     <button onClick={() => logout()}>logout</button>
                 </p>
                 <Togglable buttonLabel="create new blog" ref={blogFormRef}>
-                    <BlogForm createBlog={addBlog} username={user.username} />
+                    <BlogForm createBlog={handleAddBlog} username={currUser.username} />
                 </Togglable>
                 {blogs
                     .sort((a, b) => b.likes - a.likes)
@@ -130,9 +159,9 @@ const App = () => {
                         <Blog
                             key={blog.id}
                             blog={blog}
-                            update={updateBlog}
-                            remove={deleteBlog}
-                            ownsBlog={user.username === blog.user.username}
+                            update={handleUpdateBlog}
+                            remove={handleDeleteBlog}
+                            ownsBlog={currUser.username === blog.user.username}
                         />
                     ))}
             </div>
