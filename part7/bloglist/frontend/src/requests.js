@@ -1,5 +1,6 @@
 import axios from 'axios'
-const baseUrl = '/api/blogs'
+const blogsUrl = '/api/blogs'
+const usersUrl = '/api/users'
 
 let token = null
 
@@ -8,7 +9,7 @@ export const setToken = (newToken) => {
 }
 
 export const getBlogs = async () => {
-    const response = await axios.get(baseUrl)
+    const response = await axios.get(blogsUrl)
     return response.data
 }
 
@@ -17,12 +18,12 @@ export const createBlog = async (newBlog) => {
         headers: { Authorization: token },
     }
 
-    const response = await axios.post(baseUrl, newBlog, config)
+    const response = await axios.post(blogsUrl, newBlog, config)
     return response.data
 }
 
 export const updateBlog = async (updatedBlog) => {
-    const response = await axios.put(`${baseUrl}/${updatedBlog.id}`, updatedBlog)
+    const response = await axios.put(`${blogsUrl}/${updatedBlog.id}`, updatedBlog)
     return response.data
 }
 
@@ -31,7 +32,11 @@ export const removeBlog = async (blogToDelete) => {
         headers: { Authorization: token },
     }
 
-    const response = await axios.delete(`${baseUrl}/${blogToDelete.id}`, config)
+    const response = await axios.delete(`${blogsUrl}/${blogToDelete.id}`, config)
     return response.data
 }
 
+export const getUsers = async () => {
+    const response = await axios.get(usersUrl)
+    return response.data
+}
