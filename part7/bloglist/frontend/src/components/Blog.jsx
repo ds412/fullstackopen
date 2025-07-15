@@ -1,13 +1,19 @@
 import { useState } from 'react'
+import { useLocation, useParams, useNavigate } from 'react-router-dom'
+import useBlogMutations from '../useBlogMutations'
 
-const Blog = ({ blog, update, remove, ownsBlog }) => {
-    const [visible, setVisible] = useState(false)
-    const toggleVisibility = () => {
-        setVisible(!visible)
-    }
+const Blog = () => {
+    const { id } = useParams()
+    const { state } = useLocation()
+    const navigate = useNavigate()
+    const { handleUpdateBlog, handleDeleteBlog } = useBlogMutations()
 
-    const hide = { display: visible ? 'none' : '' }
-    const show = { display: visible ? '' : 'none' }
+    const [currUser, blog] = state || []
+
+    if (!blog) return <div>Blog not found</div>
+
+    const [localBlog, setLocalBlog] = useState(blog)
+    const ownsBlog = currUser.username === localBlog.user?.username
     const removable = { display: ownsBlog ? '' : 'none' }
 
     const blogStyle = {
@@ -21,41 +27,31 @@ const Blog = ({ blog, update, remove, ownsBlog }) => {
     const addLike = async (event) => {
         event.preventDefault()
         const updatedBlog = {
-            ...blog,
-            likes: blog.likes + 1,
-            id: blog.id,
+            ...localBlog,
+            likes: localBlog.likes + 1,
         }
-        update(updatedBlog)
+        setLocalBlog(updatedBlog)
+        handleUpdateBlog(updatedBlog)
     }
 
     const removeBlog = async (event) => {
         event.preventDefault()
-        remove(blog)
+        await handleDeleteBlog(localBlog)
+        navigate('/blogs')
     }
 
     return (
         <div style={blogStyle} className="blog">
-            <div style={hide} className="shown">
+            <div>
+                <h2>
+                    {localBlog.title} by {localBlog.author}&nbsp;
+                </h2>
+                <a href={localBlog.url}>{localBlog.url}</a>
                 <p>
-                    <span>
-                        {blog.title} {blog.author}&nbsp;
-                    </span>
-                    <button onClick={toggleVisibility}>show details</button>
-                </p>
-            </div>
-            <div style={show} className="hidden">
-                <p>
-                    <span>
-                        {blog.title} {blog.author}&nbsp;
-                    </span>
-                    <button onClick={toggleVisibility}>hide details</button>
-                </p>
-                <p>{blog.url}</p>
-                <p>
-                    likes: {blog.likes}
+                    {localBlog.likes} likes
                     <button onClick={addLike}>like</button>
                 </p>
-                <p>{blog.user.username}</p>
+                <p>added by {localBlog.user.name}</p>
                 <button style={removable} onClick={removeBlog}>
                     remove
                 </button>

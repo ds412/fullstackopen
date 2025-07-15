@@ -32,9 +32,7 @@ export const useBlogMutations = (blogFormRef) => {
         mutationFn: removeBlog,
         onSuccess: () => {
             queryClient.invalidateQueries('blogs')
-        },
-        onError: () => {
-            notificationDispatch('Error: you do not have permission to remove this blog')
+            notificationDispatch(`Removed ${blogObject.title} by ${blogObject.author}`)
         },
     })
 
@@ -44,14 +42,12 @@ export const useBlogMutations = (blogFormRef) => {
 
     const handleUpdateBlog = async (blog) => {
         updateBlogMutation.mutate({ ...blog })
-        notificationDispatch(`Liked ${blog.title} by ${blog.author}`)
     }
 
     const handleDeleteBlog = async (blogObject) => {
         const confirmed = window.confirm(`Remove ${blogObject.title} by ${blogObject.author}?`)
         if (confirmed) {
             deleteBlogMutation.mutate(blogObject)
-            notificationDispatch(`Removed ${blogObject.title} by ${blogObject.author}`)
         }
     }
 

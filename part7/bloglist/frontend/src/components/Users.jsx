@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getUsers } from '../requests'
-import User from './User'
+import { Link } from 'react-router-dom'
 
 const Users = () => {
     const result = useQuery({
@@ -10,14 +10,10 @@ const Users = () => {
         refetchInterval: 300000,
         refetchOnWindowFocus: false,
     })
-    if (result.isLoading) {
-        return <div>loading data...</div>
-    }
-    if (result.isError) {
-        return <div>User service not available due to problems in the server</div>
-    }
+    if (result.isLoading) return <div>loading data...</div>
+    if (result.isError) return <div>User service not available due to problems in the server</div>
+
     const users = result.data
-    console.log(users)
 
     return (
         <div>
@@ -33,7 +29,14 @@ const Users = () => {
                     {users
                         .sort((a, b) => b.blogs.length - a.blogs.length)
                         .map((user) => (
-                            <User key={user.id} user={user} />
+                            <tr key={user.id}>
+                                <td>
+                                    <Link to={`/users/${user.id}`} state={{ user }}>
+                                        {user.name}
+                                    </Link>
+                                </td>
+                                <td>{user.blogs.length}</td>
+                            </tr>
                         ))}
                 </tbody>
             </table>
