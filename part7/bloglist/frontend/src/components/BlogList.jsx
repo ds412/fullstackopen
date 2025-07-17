@@ -1,6 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
+import {
+    Box,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableRow,
+    Typography,
+} from '@mui/material'
+
 import { getBlogs } from '../requests'
 import BlogForm from './BlogForm'
 import Togglable from './Togglable'
@@ -25,28 +36,35 @@ const BlogList = ({ currUser }) => {
     }
     const blogs = result.data
 
-    const blogStyle = {
-        paddingTop: 10,
-        paddingLeft: 2,
-        border: 'solid',
-        borderWidth: 2,
-        marginBottom: 5,
-    }
-
     return (
         <>
-            <Togglable buttonLabel="create new blog" ref={blogFormRef}>
-                <BlogForm createBlog={handleAddBlog} username={currUser.username} />
-            </Togglable>
-            {blogs
-                .sort((a, b) => b.likes - a.likes)
-                .map((blog) => (
-                    <div key={blog.id} style={blogStyle}>
-                        <Link to={`/blogs/${blog.id}`} state={[currUser, blog]}>
-                            {blog.title} by {blog.author}
-                        </Link>
-                    </div>
-                ))}
+            <Box sx={{ mb: 3 }}>
+                <Togglable buttonLabel="create new blog" ref={blogFormRef}>
+                    <BlogForm createBlog={handleAddBlog} username={currUser.username} />
+                </Togglable>
+            </Box>
+            <TableContainer component={Paper} elevation={3}>
+                <Table>
+                    <TableBody>
+                        {blogs
+                            .sort((a, b) => b.likes - a.likes)
+                            .map((blog) => (
+                                <TableRow key={blog.id} hover>
+                                    <TableCell>
+                                        <Link
+                                            to={`/blogs/${blog.id}`}
+                                            state={[currUser, blog]}
+                                            style={{ textDecoration: 'none', color: 'inherit' }}>
+                                            <Typography>
+                                                {blog.title} by {blog.author}
+                                            </Typography>
+                                        </Link>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
         </>
     )
 }

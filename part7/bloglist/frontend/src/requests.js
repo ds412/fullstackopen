@@ -40,3 +40,8 @@ export const getUsers = async () => {
     const response = await axios.get(usersUrl)
     return response.data
 }
+
+export const addComment = async (blog, content) => {
+    const response = await axios.post(`${blogsUrl}/${blog.id}/comments`, { content })
+    return response.data
+}

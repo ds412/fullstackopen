@@ -1,17 +1,19 @@
+import { Alert } from '@mui/material'
+
 import { useNotificationValue } from '../NotificationContext'
 
 const Notification = () => {
     const message = useNotificationValue()
-    
+
     if (message === null || message === '') {
         return null
     }
 
-    if (message.includes('Error')) {
-        return <div className="notification error">{message}</div>
-    } else {
-        return <div className="notification">{message}</div>
-    }
+    return (
+        <Alert severity={message.includes('Error') ? 'error' : 'success'} sx={{ mb: 2 }}>
+            {message}
+        </Alert>
+    )
 }
 
 export default Notification

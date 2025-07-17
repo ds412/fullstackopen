@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
+import { Box, Button, Paper, TextField, Typography } from '@mui/material'
 
 const BlogForm = ({ createBlog, username }) => {
     const [title, setTitle] = useState('')
@@ -21,42 +22,46 @@ const BlogForm = ({ createBlog, username }) => {
     }
 
     return (
-        <div>
-            <h2>create new blog</h2>
-            <form onSubmit={addBlog}>
-                <div>
-                    title
-                    <input
-                        type="text"
-                        value={title}
-                        name="Title"
-                        id="blogTitle-input"
-                        onChange={({ target }) => setTitle(target.value)}
-                    />
-                </div>
-                <div>
-                    author
-                    <input
-                        type="text"
-                        value={author}
-                        name="Author"
-                        id="blogAuthor-input"
-                        onChange={({ target }) => setAuthor(target.value)}
-                    />
-                </div>
-                <div>
-                    url
-                    <input
-                        type="text"
-                        value={url}
-                        name="Url"
-                        id="blogUrl-input"
-                        onChange={({ target }) => setUrl(target.value)}
-                    />
-                </div>
-                <button type="submit">create</button>
-            </form>
-        </div>
+        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h5" gutterBottom>
+                Create new blog
+            </Typography>
+            <Box component="form" onSubmit={addBlog}>
+                <TextField
+                    label="Title"
+                    type="text"
+                    value={title}
+                    name="Title"
+                    id="blogTitle-input"
+                    onChange={({ target }) => setTitle(target.value)}
+                    fullWidth
+                    margin="normal"
+                />
+                <TextField
+                    label="Author"
+                    type="text"
+                    value={author}
+                    name="Author"
+                    id="blogAuthor-input"
+                    onChange={({ target }) => setAuthor(target.value)}
+                    fullWidth
+                    margin="normal"
+                />
+                <TextField
+                    label="URL"
+                    type="text"
+                    value={url}
+                    name="Url"
+                    id="blogUrl-input"
+                    onChange={({ target }) => setUrl(target.value)}
+                    fullWidth
+                    margin="normal"
+                />
+                <Button type="submit" variant="contained" sx={{ mt: 2 }}>
+                    create
+                </Button>
+            </Box>
+        </Paper>
     )
 }
 

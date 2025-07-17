@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import {Routes, Route, Link,} from 'react-router-dom'
+import { Routes, Route, Link } from 'react-router-dom'
+import { AppBar, Box, Button, Container, Toolbar, Typography } from '@mui/material'
 
 import Blog from './components/Blog'
 import BlogList from './components/BlogList'
@@ -32,49 +33,50 @@ const App = () => {
         notificationDispatch('Succesfully logged out')
     }
 
-    const navBar = {
-        backgroundColor: 'lightgrey',
-        padding: 5,
-    }
-
-    const padding = {
-        margin: 5,
-    }
-
     if (currUser === null) {
         return (
             <div>
-                <h2>log in to application</h2>
                 <Notification />
                 <LoginForm />
             </div>
         )
     } else {
         return (
-            <div>
-                <div style={navBar}>
-                    <p>
-                        <Link style={padding} to="/">
-                            blogs
-                        </Link>
-                        <Link style={padding} to="/users">
-                            users
-                        </Link>
-                        <span>{currUser.name} logged in </span>
-                        <button style={{ padding }} onClick={() => logout()}>
-                            logout
-                        </button>
-                    </p>
-                </div>
-                <h1>Blog App</h1>
+            <Container>
+                <AppBar position="static">
+                    <Toolbar sx={{ justifyContent: 'space-between' }}>
+                        <Box>
+                            <Button color="inherit" component={Link} to="/">
+                                blogs
+                            </Button>
+                            <Button color="inherit" component={Link} to="/users">
+                                users
+                            </Button>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Typography>{currUser.name} logged in</Typography>
+                            <Button
+                                color="inherit"
+                                onClick={() => logout()}
+                                variant="outlined"
+                                size="small">
+                                logout
+                            </Button>
+                        </Box>
+                    </Toolbar>
+                </AppBar>
+
+                <Typography variant="h3" component="h1" gutterBottom sx={{ mt: 3, mb: 2 }}>
+                    Blog App
+                </Typography>
                 <Notification />
                 <Routes>
                     <Route path="/" element={<BlogList currUser={currUser} />} />
-                    <Route path="/blogs/:id" element={<Blog/>} />
+                    <Route path="/blogs/:id" element={<Blog />} />
                     <Route path="/users" element={<Users />} />
                     <Route path="/users/:id" element={<User />} />
                 </Routes>
-            </div>
+            </Container>
         )
     }
 }

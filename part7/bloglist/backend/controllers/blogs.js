@@ -6,7 +6,7 @@ const { userExtractor } = require('../utils/middleware')
 blogsRouter.get('/', (request, response) => {
     Blog.find({})
         .populate('user', { username: 1, name: 1, id: 1 })
-        .then(blogs => {
+        .then((blogs) => {
             response.json(blogs)
         })
 })
@@ -25,9 +25,9 @@ blogsRouter.post('/', userExtractor, async (request, response) => {
     user.blogs = user.blogs.concat(blog._id)
     await user.save()
 
-    const savedBlog = await blog.save();
-    const populatedBlog = await Blog.findById(savedBlog._id).populate('user');
-    response.status(201).json(populatedBlog);
+    const savedBlog = await blog.save()
+    const populatedBlog = await Blog.findById(savedBlog._id).populate('user')
+    response.status(201).json(populatedBlog)
 })
 
 blogsRouter.delete('/:id', userExtractor, async (request, response) => {
@@ -42,7 +42,7 @@ blogsRouter.delete('/:id', userExtractor, async (request, response) => {
         return response.status(403).json({ error: 'user not authorized' })
     }
 
-    user.blogs = user.blogs.filter(b => b.id.toString() !== blog.id.toString())
+    user.blogs = user.blogs.filter((b) => b.id.toString() !== blog.id.toString())
 
     await blog.deleteOne()
     response.status(204).end()
@@ -62,10 +62,30 @@ blogsRouter.put('/:id', async (request, response) => {
     blog.url = url
     blog.likes = likes
 
-    const savedBlog = await blog.save();
-    const populatedBlog = await Blog.findById(savedBlog.id).populate('user');
+    const savedBlog = await blog.save()
+    const populatedBlog = await Blog.findById(savedBlog.id).populate('user')
 
     response.json(populatedBlog)
+})
+
+blogsRouter.post('/:id/comments', async (request, response) => {
+    const { content } = request.body                // Expects { content: "comment text" }
+
+    if (!content) {
+        return response.status(400).json({ error: 'comment content missing' })
+    }
+
+    const updatedBlog = await Blog.findByIdAndUpdate(
+        request.params.id,
+        { $push: { comments: content } },
+        { new: true, runValidators: true }
+    ).populate('user')
+
+    if (!updatedBlog) {
+        return response.status(404).end()
+    }
+
+    response.json(updatedBlog)
 })
 
 module.exports = blogsRouter

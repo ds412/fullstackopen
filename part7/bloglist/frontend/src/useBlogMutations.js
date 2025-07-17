@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNotificationDispatch } from './NotificationContext'
-import { createBlog, updateBlog, removeBlog } from './requests'
+import { createBlog, updateBlog, removeBlog, addComment } from './requests'
 
 export const useBlogMutations = (blogFormRef) => {
     const queryClient = useQueryClient()
@@ -36,6 +36,17 @@ export const useBlogMutations = (blogFormRef) => {
         },
     })
 
+    const commentBlogMutation = useMutation({
+        mutationFn: ({ blog, content }) => addComment(blog, content),
+        onSuccess: (updatedBlog) => {
+            queryClient.invalidateQueries('blogs')
+            notificationDispatch(`Commented on ${updatedBlog.title}`)
+        },
+        onError: () => {
+            notificationDispatch('Failed to add comment')
+        },
+    })
+
     const handleAddBlog = async (blogObject) => {
         addBlogMutation.mutate(blogObject)
     }
@@ -51,10 +62,15 @@ export const useBlogMutations = (blogFormRef) => {
         }
     }
 
+    const handleCommentBlog = async (blog, comment) => {
+        commentBlogMutation.mutate({ blog, content: comment })
+    }
+
     return {
         handleAddBlog,
         handleUpdateBlog,
         handleDeleteBlog,
+        handleCommentBlog,
     }
 }
 

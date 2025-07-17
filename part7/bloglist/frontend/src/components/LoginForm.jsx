@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Box, Button, Paper, TextField, Typography } from '@mui/material'
 import { useNotificationDispatch } from '../NotificationContext'
 import { useUserDispatch } from '../UserContext'
 import loginService from '../services/login'
@@ -26,29 +27,39 @@ const LoginForm = () => {
     }
 
     return (
-        <div>
-            <form onSubmit={handleLogin}>
-                <div>
-                    username
-                    <input
-                        type="text"
-                        value={username}
-                        name="Username"
-                        onChange={({ target }) => setUsername(target.value)}
-                    />
-                </div>
-                <div>
-                    password
-                    <input
-                        type="password"
-                        value={password}
-                        name="Password"
-                        onChange={({ target }) => setPassword(target.value)}
-                    />
-                </div>
-                <button type="submit">login</button>
-            </form>
-        </div>
+        <Paper elevation={3} sx={{ p: 4, maxWidth: 400, mx: 'auto', mt: 4 }}>
+            <Typography variant="h4" component="h2" gutterBottom align="center">
+                Log in to application
+            </Typography>
+            <Box
+                component="form"
+                onSubmit={handleLogin}
+                sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <TextField
+                    label="Username"
+                    type="text"
+                    value={username}
+                    name="Username"
+                    onChange={({ target }) => setUsername(target.value)}
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                />
+                <TextField
+                    label="Password"
+                    type="password"
+                    value={password}
+                    name="Password"
+                    onChange={({ target }) => setPassword(target.value)}
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                />
+                <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }} size="large">
+                    Login
+                </Button>
+            </Box>
+        </Paper>
     )
 }
 
