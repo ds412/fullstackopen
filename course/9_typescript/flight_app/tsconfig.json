@@ -1,0 +1,50 @@
+{
+    // Visit https://aka.ms/tsconfig to read more about this file
+    "compilerOptions": {
+        // File Layout
+        // "rootDir": "./src",
+        // "outDir": "./dist",
+
+        // Environment Settings
+        // See also https://aka.ms/tsconfig/module
+        "module": "nodenext",                    // use node.js's native module resolution to allow imports
+        "target": "esnext",                      // latest version of JS
+        "types": ["express"],
+        "noEmit": true,                          // just do type checking without compilation
+        "esModuleInterop": true,                 // enable compatibility between commonJS and ES module import styles
+        "allowImportingTsExtensions": true,      // allows importing TypeScript files directly
+
+        // For nodejs:
+        // "lib": ["esnext"],
+        // "types": ["node"],
+        // and npm install -D @types/node
+
+        // Other Outputs
+        // "sourceMap": true,
+        // "declaration": true,
+        // "declarationMap": true,
+
+        // Stricter Typechecking Options
+        // "noUncheckedIndexedAccess": true,
+        // "exactOptionalPropertyTypes": true,
+
+        // Style Options
+        "noImplicitReturns": true,              // ensures that all code paths in a function return a value
+        // "noImplicitOverride": true,
+        "noUnusedLocals": true,                 // prevents having unused local variables
+        "noUnusedParameters": true,             // ensure function doesn't have unused parameters
+        // "noFallthroughCasesInSwitch": true,
+        // "noPropertyAccessFromIndexSignature": true,
+        "noFallthroughCasesInSwitch": true,     // ensure switch cases all end with return or break
+
+        // Recommended Options
+        "strict": true,                          // use TS features more strictly, including noImplictAny
+        // "jsx": "react-jsx",
+        // "verbatimModuleSyntax": true,
+        // "isolatedModules": true,
+        // "noUncheckedSideEffectImports": true,
+        // "moduleDetection": "force",
+        // "skipLibCheck": true,
+
+    }
+}
