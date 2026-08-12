@@ -1,7 +1,12 @@
 // routes for /api/notes
 const router = require('express').Router()
 
-const { Note } = require('../models')
+const jwt = require('jsonwebtoken')
+const { SECRET } = require('../util/config')
+
+const { Note, User } = require('../models')
+const { Op } = require('sequelize')
+
 
 // middleware to find a note by its id (runs before the actual routes, puts result in req.note)
 const noteFinder = async (req, res, next) => {
@@ -12,16 +17,52 @@ const noteFinder = async (req, res, next) => {
     next()
 }
 
-// get all notes
+// middleware to decode the authorization to a token, puts result in req.decodedToken
+const tokenExtractor = (req, res, next) => {
+    const authorization = req.get('authorization')
+    if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
+        try {
+            req.decodedToken = jwt.verify(authorization.substring(7), SECRET)
+        } catch {
+            return res.status(401).json({ error: 'token invalid' })
+        }
+    } else {
+        return res.status(401).json({ error: 'token missing' })
+    }
+    next()
+}
+
+// get all notes, include username of note creator; can be filtered on important and content substring match
 router.get('/', async (req, res) => {
-    const notes = await Note.findAll()
+    const where = {}
+
+    if (req.query.important) {
+        where.important = req.query.important === "true"
+    }
+
+    if (req.query.search) {
+        where.content = {
+            [Op.substring]: req.query.search
+        }
+    }
+
+    const notes = await Note.findAll({
+        attributes: { exclude: ['userId'] },
+        include: {
+            model: User,
+            attributes: ['name']
+        },
+        where
+    })
+
     res.json(notes)
 })
 
-// create a new note
-router.post('/', async (req, res) => {
+// create a new note (only succeed if valid login token is included)
+router.post('/', tokenExtractor, async (req, res) => {
     try {
-        const note = await Note.create({ ...req.body, date: new Date() })
+        const user = await User.findByPk(req.decodedToken.id)
+        const note = await Note.create({ ...req.body, userId: user.id, date: new Date() })
         res.json(note)
     } catch (error) {
         return res.status(400).json({ error })
