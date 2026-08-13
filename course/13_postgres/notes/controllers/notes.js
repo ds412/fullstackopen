@@ -1,33 +1,15 @@
 // routes for /api/notes
 const router = require('express').Router()
 
-const jwt = require('jsonwebtoken')
-const { SECRET } = require('../util/config')
-
 const { Note, User } = require('../models')
 const { Op } = require('sequelize')
-
+const { tokenExtractor } = require('../util/middleware')
 
 // middleware to find a note by its id (runs before the actual routes, puts result in req.note)
 const noteFinder = async (req, res, next) => {
     req.note = await Note.findByPk(req.params.id)
     if (!req.note) {
         return res.status(404).end()
-    }
-    next()
-}
-
-// middleware to decode the authorization to a token, puts result in req.decodedToken
-const tokenExtractor = (req, res, next) => {
-    const authorization = req.get('authorization')
-    if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
-        try {
-            req.decodedToken = jwt.verify(authorization.substring(7), SECRET)
-        } catch {
-            return res.status(401).json({ error: 'token invalid' })
-        }
-    } else {
-        return res.status(401).json({ error: 'token missing' })
     }
     next()
 }
